@@ -13,6 +13,11 @@ from numpy import array
 from SimTime import SimTime
 from numpy import *
 
+from random import seed, randint
+
+import config
+
+
 class Ball(object):
     '''
     classdocs
@@ -24,10 +29,26 @@ class Ball(object):
         Constructor
         '''
         self.position = position.astype(double)
+        self.startpos = position.astype(double)
         self.radius = 5
         self.uid = id(self)
         self.isDynamic = False
         self.velocity = array([0, 0, 0])
+
+    def resetPosition(self):
+
+
+        self.position = np.copy(self.startpos)
+        yStart = randint(50, 50)
+        zStart = randint(config.field_height, config.field_height)
+
+        self.velocity = array([0, 0, 0])
+        self.position = array([0, yStart, 0])
+
+    def getFuzzyPosition(self, range=10):
+        return np.array([randint(int(num) - range, int(num) + range) for num in self.position])
+
+
         
     def draw(self,subplot):
         #draw a sphere of specified size at specified position

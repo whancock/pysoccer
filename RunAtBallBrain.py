@@ -20,16 +20,17 @@ class RunAtBallBrain(object):
     def __init__(self):      
         pass
     
-    def takeStep(self, myTeam=[], enemyTeam=[], balls=[], obstacles=[]):
+    def takeStep(self, facingGoal, myTeam=[], enemyTeam=[], balls=[], obstacles=[]):
+
         actions = []
         deltaPos = np.array([1, 0, 0])
         deltaRot = getYPRFromVector(balls[0].position)
-        myTeamName = myTeam[0].team.name
-        for agent in enemyTeam:
-            if myTeamName == 'A':
-                actions.append(Stun(agent, 10))
+
         for ball in balls:
-            actions.append(Kick(ball, np.array([1, 0, 0]), 100))
+
+            if facingGoal is True:
+                actions.append(Kick(ball, np.array([1, 0, 0]), 100))
+
         return deltaPos, deltaRot, actions
         
 

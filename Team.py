@@ -12,9 +12,10 @@ class Team(object):
     '''
 
 
-    def __init__(self, name, color):
+    def __init__(self, name, color, goal=None):
         '''
         Constructor
         '''
         self.name = name
         self.color = color
+        self.goal = goal

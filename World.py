@@ -13,18 +13,19 @@ import os
 
 class World(object):
     
-    def __init__(self, width, height):
+    def __init__(self, width, length, height):
         self.agents=[]
         self.obstacles=[]
         self.balls=[]
         self.width = width
         self.height = height
+        self.length = length
         
     def draw(self, ax):
         
  
         ax.set_xlim3d(-self.width,self.width)
-        ax.set_ylim3d(-self.width,self.width)
+        ax.set_ylim3d(-self.length,self.length)
         ax.set_zlim3d(-self.height,self.height)
         for agent in self.agents:
             agent.draw(ax)

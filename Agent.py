@@ -15,6 +15,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from Ball import Ball
 from Obstacle import Obstacle
 from SimTime import SimTime
+from NavUtils import snapVector
 
 class Agent(object):
     '''
@@ -23,9 +24,11 @@ class Agent(object):
     '''
 
 
-    def __init__(self, team, position, rotation, brain, colRadius, drawRadius):
+    def __init__(self, team, position, rotation, brain, colRadius, drawRadius, agent_id=None):
         self.position = position.astype(float)        #numpy array [x, y ,z]
+        self.startpos = np.copy(self.position)
         self.rotation = rotation.astype(float)        #numpy array [yaw, pitch, roll] (in degrees)
+        self.startrot = np.copy(self.rotation)
         self.colRadius = colRadius      #float size of collision sphere
         self.drawRadius = drawRadius    #float size of sphere to be drawn
         self.team = team                #provide team 'A' or team 'B'
@@ -40,8 +43,14 @@ class Agent(object):
         self.lastStunned = float(-1)          #Last time agent was stunned
         self.stunDuration = float(-1)         #Duration for which I am stunned
         self.stunRange = 15
+        self.agentId = agent_id
 
  
+    def resetPosition(self):
+        self.position = np.copy(self.startpos)
+        self.rotation = np.copy(self.startrot)
+
+
     '''
     Plots a sphere of radius 10 with a left hand co-ordinate frame on the provided subplot.
     '''       
@@ -100,7 +109,15 @@ class Agent(object):
     '''  
     def moveAgent(self, world):
         myTeam, enemyTeam, balls, obstacles = self.buildEgoCentricRepresentationOfWorld(world)
-        deltaPos, deltaRot, actions = self.brain.takeStep(myTeam, enemyTeam, balls, obstacles)
+
+        if 90. < abs(self.rotation[0]) < 270.:
+            agentFacing = -1
+        else:
+            agentFacing = 1
+
+        facingGoal = agentFacing == np.sign(self.team.goal)
+
+        deltaPos, deltaRot, actions = self.brain.takeStep(self, facingGoal, myTeam, enemyTeam, balls, obstacles)
         #handle movements
         if not self.isStunned:
             self.rotateAgent(deltaRot)

@@ -19,6 +19,12 @@ from RunAtBallBrain import RunAtBallBrain
 from Team import Team
 from SimTime import SimTime
 
+from SoccerBrain import SoccerBrain
+from BetterBrain import BetterBrain
+
+from random import seed, randint
+import config
+
 
 
 #Called once for initialization
@@ -34,9 +40,10 @@ class Simulator(object):
         self.simTime = simTime
         self.fps = fps
         self.imageDirName = imageDirName
-        self.currWP = 0
-        self.ballWPs = [array([50.0, -100.0, 0.0]), array([0.0, 100.0, -70.0]), array([50.0, 20.0, 100.0]),array([-30.0, 50.0, -100.0]), array([80.0, -50.0, 50.0]), array([80.0, -50.0, -50.0]), array([-65.0, 20.0, 50.0]), array([-50.0, 20.0, -60.0])]
 
+        self.ascore = 0
+        self.bscore = 0
+      
     def setup(self):    
         #setup directory to save the images
         try:
@@ -46,51 +53,42 @@ class Simulator(object):
 
   
          #define teams which the agents can be a part of
-        teamA = Team("A", '#ff99ff')
-        teamB = Team("B", '#ffcc99')
-        #Defining a couple of agents 
-        ag1Pos = array([80, 50, -20])
-        ag1Rot = array([30, 0, 0])
-        ag1Brain = RunAtBallBrain()
-        agent1 = Agent(teamA, ag1Pos, ag1Rot, ag1Brain, 5, 5)
-         
-         
-        ag2Pos = array([-80, 0, 0])
-        ag2Rot = array([0, 0, 0])
-        ag2Brain = RunAtBallBrain()
-        agent2 = Agent(teamA, ag2Pos, ag2Rot, ag2Brain, 5, 5)
-          
-        ag3Pos = array([70, 30, 50])
-        ag3Rot = array([0, 0, 0])
-        ag3Brain = RunAtBallBrain()
-        agent3 = Agent(teamB, ag3Pos, ag3Rot, ag3Brain, 5, 5)
-          
-        ag4Pos = array([-80, 20, 60])
-        ag4Rot = array([0, 0, 0])
-        ag4Brain = RunAtBallBrain()
-        agent4 = Agent(teamB, ag4Pos, ag4Rot, ag4Brain, 5, 5)
-         
-        #Add the agent to the world
-        self.world.agents.append(agent1)
-        self.world.agents.append(agent2)
-        self.world.agents.append(agent3)
-        self.world.agents.append(agent4)
+        teamA = Team("A", '#ff99ff', 1)
+        teamB = Team("B", '#ffcc99', -1)
+        
 
-#         
-        #define a bunch of obstacles
-        ob1Pos = array([-50,-50,-50])
-        ob1 = Obstacle(ob1Pos, 30)
-         
-        ob2Pos = array([80,-50,-50])
-        ob2 = Obstacle(ob2Pos, 20)
-         
-        #add obstacles to the world
-        self.world.obstacles.append(ob1);
-        self.world.obstacles.append(ob2)
+        yPos = [75, 25, -25, -75]
+
+        for idx in range(4):
+
+            agentPos = array([-60, yPos[idx], 0])
+            agentRot = array([0, 0, 0])
+
+            agentBrain = SoccerBrain()
+            agent = Agent(teamA, agentPos, agentRot, agentBrain, 5, 5, idx)
+
+            self.world.agents.append(agent)
+
+
+
+        for idx in range(4):
+
+            agentPos = array([60, yPos[idx], 0])
+            agentRot = array([-180, 0, 0])
+
+            agentBrain = BetterBrain()
+            agent = Agent(teamB, agentPos, agentRot, agentBrain, 5, 5, idx)
+
+            self.world.agents.append(agent)
+
+
+
         
         #define a ball
-        ball = Ball(array([0, 0, 0]))
+
+        ball = Ball(np.array([0,0,0]))
         ball.isDynamic = True
+        ball.resetPosition()
         
         #add the ball to the world
         self.world.balls.append(ball)
@@ -101,12 +99,30 @@ class Simulator(object):
             agent.moveAgent(self.world)
         for ball in self.world.balls:
             ball.updatePhysics(self.world)
-#         for ball in self.world.balls:  
-#             if len(self.ballWPs) > 0:  
-#                 ball.moveBall(self.ballWPs[0], 1)
-#                 if distBetween(ball.position, self.ballWPs[0]) < 0.5:
-#                     if len(self.ballWPs) > 0:
-#                         self.ballWPs.remove(self.ballWPs[0])
+
+        scored = False
+        ball = self.world.balls[0]
+
+        if ball.position[0] <= -90:
+            #team b scored
+            print 'team b scored'
+            print self.ascore, self.bscore
+            self.bscore += 1
+            scored = True
+
+
+        elif ball.position[0] >= 90:
+            print 'team a scored'
+            print self.ascore, self.bscore
+            self.ascore += 1
+            scored = True
+
+        if scored:
+            for agent in self.world.agents:
+                agent.resetPosition()
+
+            ball.resetPosition()
+
 
     
 #Called at specifed fps
@@ -131,13 +147,13 @@ class Simulator(object):
             SimTime.time = currTime
             currProb = double(drawIndex)/double(physicsIndex+1)
             if currProb < frameProb:
-                self.drawFrame(drawIndex)  
+                # self.drawFrame(drawIndex)  
                 drawIndex+=1
             physicsIndex+=1
             currTime+=double(timeStep)
      
-        print "Physics ran for "+str(physicsIndex)+" steps"
-        print "Drawing ran for "+str(drawIndex)+" steps"
+        # print "Physics ran for "+str(physicsIndex)+" steps"
+        # print "Drawing ran for "+str(drawIndex)+" steps"
             
     def drawFrame(self, loopIndex):
         fig = plt.figure(figsize=(16,12))
@@ -146,7 +162,8 @@ class Simulator(object):
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
         ax.set_zlabel("Z")    
-        fname = self.imageDirName + '/' + str(int(100000000+loopIndex)) + '.png' # name the file 
+        # fname = self.imageDirName + '/' + str(int(100000000+loopIndex)) + '.png' # name the file 
+        fname = self.imageDirName + '/moo.png' # name the file 
         self.loop(ax)
         plt.gca().set_ylim(ax.get_ylim()[::-1])
         savefig(fname, format='png', bbox_inches='tight')
@@ -156,9 +173,9 @@ class Simulator(object):
 
 #Simulation runs here
 #set the size of the world
-world = World(100, 100)
+world = World(config.field_length, config.field_width, config.field_height)
 #specify which world to simulate, total simulation time, and frammerate for video
-sim = Simulator(world, 120, 30, "images")
+sim = Simulator(world, 1200, 30, "images")
 #run the simulation
 sim.run()
 
