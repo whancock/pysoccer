@@ -22,7 +22,7 @@ from SimTime import SimTime
 from SoccerBrain import SoccerBrain
 from BetterBrain import BetterBrain
 
-from random import seed, randint
+from random import seed, randint, shuffle
 import config
 
 
@@ -43,6 +43,8 @@ class Simulator(object):
 
         self.ascore = 0
         self.bscore = 0
+
+        self.loopcount = 0
       
     def setup(self):    
         #setup directory to save the images
@@ -95,8 +97,12 @@ class Simulator(object):
         
 #called at a fixed 30fps always
     def fixedLoop(self):
+
+        shuffle(self.world.agents)
         for agent in self.world.agents:
             agent.moveAgent(self.world)
+
+
         for ball in self.world.balls:
             ball.updatePhysics(self.world)
 
@@ -109,6 +115,7 @@ class Simulator(object):
             print self.ascore, self.bscore
             self.bscore += 1
             scored = True
+            self.loopcount = 0
 
 
         elif ball.position[0] >= 90:
@@ -116,12 +123,22 @@ class Simulator(object):
             print self.ascore, self.bscore
             self.ascore += 1
             scored = True
+            self.loopcount = 0
 
         if scored:
             for agent in self.world.agents:
                 agent.resetPosition()
 
             ball.resetPosition()
+        else:
+            self.loopcount += 1
+
+        if self.loopcount >= 2000:
+            print 'reset'
+            for agent in self.world.agents:
+                agent.resetPosition()
+            self.world.balls[0].resetPosition()
+            self.loopcount = 0
 
 
     
@@ -147,7 +164,7 @@ class Simulator(object):
             SimTime.time = currTime
             currProb = double(drawIndex)/double(physicsIndex+1)
             if currProb < frameProb:
-                # self.drawFrame(drawIndex)  
+                self.drawFrame(drawIndex)  
                 drawIndex+=1
             physicsIndex+=1
             currTime+=double(timeStep)
@@ -162,8 +179,8 @@ class Simulator(object):
         ax.set_xlabel("X")
         ax.set_ylabel("Y")
         ax.set_zlabel("Z")    
-        # fname = self.imageDirName + '/' + str(int(100000000+loopIndex)) + '.png' # name the file 
-        fname = self.imageDirName + '/moo.png' # name the file 
+        fname = self.imageDirName + '/' + str(int(100000000+loopIndex)) + '.png' # name the file 
+        # fname = self.imageDirName + '/moo.png' # name the file 
         self.loop(ax)
         plt.gca().set_ylim(ax.get_ylim()[::-1])
         savefig(fname, format='png', bbox_inches='tight')
@@ -175,7 +192,7 @@ class Simulator(object):
 #set the size of the world
 world = World(config.field_length, config.field_width, config.field_height)
 #specify which world to simulate, total simulation time, and frammerate for video
-sim = Simulator(world, 1200, 30, "images")
+sim = Simulator(world, 2000, 30, "images")
 #run the simulation
 sim.run()
 

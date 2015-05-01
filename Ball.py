@@ -35,15 +35,24 @@ class Ball(object):
         self.isDynamic = False
         self.velocity = array([0, 0, 0])
 
+        self.kicked = False
+        self.resetCounter = 0
+        self.previousPos = array([0, 0, 0])
+
     def resetPosition(self):
 
 
         self.position = np.copy(self.startpos)
-        yStart = randint(50, 50)
-        zStart = randint(config.field_height, config.field_height)
+        yStart = randint(-50, 50)
+        zStart = randint(-20, 20)
 
         self.velocity = array([0, 0, 0])
-        self.position = array([0, yStart, 0])
+        self.position = array([0, yStart, zStart])
+        
+        self.previousPos = array([0, yStart, 0])
+        self.kicked = False
+        self.resetCounter = 0
+
 
     def getFuzzyPosition(self, range=10):
         return np.array([randint(int(num) - range, int(num) + range) for num in self.position])
@@ -69,10 +78,18 @@ class Ball(object):
             
     def updatePhysics(self, world):
         if self.isDynamic:
+
             #move with velocity
             self.position += self.velocity * SimTime.fixedDeltaTime
 #             print "Ballin to"+str(self.velocity * SimTime.fixedDeltaTime)
             self.velocity *= 0.99  
+
+            if self.kicked:
+                if np.array_equal(self.position, self.previousPos):
+                    self.resetCounter += 1
+
+            if self.resetCounter >= 5:
+                self.resetPosition()
 
             #Handle collisions with world bounds
             if self.position[2] < -world.height:
@@ -116,6 +133,9 @@ class Ball(object):
             
             
     def kick(self, direction, intensity):
+
+        self.kicked = True
+
         directionNorm = normalize(direction)
         if self.isDynamic:
             self.velocity = directionNorm * intensity
