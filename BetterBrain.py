@@ -16,7 +16,7 @@ class BetterBrain(object):
 	def takeStep(self, agent, facingGoal, myTeam=[], enemyTeam=[], balls=[], obstacles=[]):
 
 
-		ballPosition = balls[0].getFuzzyPosition(50)
+		ballPosition = balls[0].getFuzzyPosition(100)
 		# ballPosition = balls[0].position
 		# ballPosition = (np.random.rand(3) * 200) - 100
 
