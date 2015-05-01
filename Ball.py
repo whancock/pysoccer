@@ -49,7 +49,7 @@ class Ball(object):
         self.velocity = array([0, 0, 0])
         self.position = array([0, yStart, zStart])
         
-        self.previousPos = array([0, yStart, 0])
+        self.previousPos = array([0, yStart, zStart])
         self.kicked = False
         self.resetCounter = 0
 

@@ -5,9 +5,9 @@ from LinearAlegebraUtils import getYPRFromVector
 import numpy as np
 from Action import Stun, Kick
 
-from NavUtils import snapVector
+from NavUtils import snapVector, getTeamAvoidance
 
-class SoccerBrain(object):
+class AntiflockBrain(object):
 
 
 	def __init__(self):      
@@ -15,20 +15,11 @@ class SoccerBrain(object):
 
 	def takeStep(self, agent, facingGoal, myTeam=[], enemyTeam=[], balls=[], obstacles=[]):
 
-	
-
-
-
-
 		movedir = np.array([0,0,0])
 
-		# ballPosition = balls[0].getFuzzyPosition(100)
-		ballPosition = balls[0].position
+		ballPosition = balls[0].getFuzzyPosition(100)
+		# ballPosition = balls[0].position
 		# ballPosition = (np.random.rand(3) * 200) - 100
-
-
-		# degrade our knowledge to direction of ball, not location
-		# ballPosition = snapVector(ballPosition)
 
 
 		movedir += ballPosition
@@ -36,21 +27,19 @@ class SoccerBrain(object):
 
 		actions = []
 		deltaPos = np.array([1, 0, 0])
+		
 
 		# degrade our knowledge to direction of ball, not location
 		# deltaRot = snapVector(deltaRot)
-		
-
-		
 
 
 
 		# if I am closest to the ball, keep going, else move away from teammates
-		# myBallDist = np.linalg.norm(balls[0].position)
-		# teamMinDist = min(np.linalg.norm(mate.position - balls[0].position) for mate in myTeam)
+		myBallDist = np.linalg.norm(ballPosition)
+		teamMinDist = min(np.linalg.norm(mate.position - ballPosition) for mate in myTeam)
 
-		# if not myBallDist < teamMinDist:
-		# 	movedir += 2.0 * getTeamAvoidance(myTeam)
+		if not myBallDist < teamMinDist:
+			movedir += 1.0 * getTeamAvoidance(myTeam)
 
 
 		

@@ -21,6 +21,7 @@ from SimTime import SimTime
 
 from SoccerBrain import SoccerBrain
 from BetterBrain import BetterBrain
+from AntiflockBrain import AntiflockBrain
 
 from random import seed, randint, shuffle
 import config
@@ -78,7 +79,7 @@ class Simulator(object):
             agentPos = array([60, yPos[idx], 0])
             agentRot = array([-180, 0, 0])
 
-            agentBrain = BetterBrain()
+            agentBrain = AntiflockBrain()
             agent = Agent(teamB, agentPos, agentRot, agentBrain, 5, 5, idx)
 
             self.world.agents.append(agent)
@@ -109,19 +110,19 @@ class Simulator(object):
         scored = False
         ball = self.world.balls[0]
 
-        if ball.position[0] <= -90:
+        if ball.position[0] <= -85:
             #team b scored
             print 'team b scored'
-            print self.ascore, self.bscore
             self.bscore += 1
+            print self.ascore, self.bscore
             scored = True
             self.loopcount = 0
 
 
-        elif ball.position[0] >= 90:
+        elif ball.position[0] >= 85:
             print 'team a scored'
-            print self.ascore, self.bscore
             self.ascore += 1
+            print self.ascore, self.bscore
             scored = True
             self.loopcount = 0
 
@@ -163,6 +164,9 @@ class Simulator(object):
             self.fixedLoop()
             SimTime.time = currTime
             currProb = double(drawIndex)/double(physicsIndex+1)
+
+            # print self.world.balls[0].position[0]
+
             if currProb < frameProb:
                 self.drawFrame(drawIndex)  
                 drawIndex+=1
